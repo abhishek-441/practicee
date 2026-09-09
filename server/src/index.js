@@ -19,7 +19,17 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));const allowedOrigins = [
+  "http://localhost:5173",
+  "https://practicee-alone-a559.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true
+  })
+);
 
 // Stripe webhook needs the raw body, so it must be registered BEFORE express.json()
 app.post("/api/payments/webhook", express.raw({ type: "application/json" }), stripeWebhook);

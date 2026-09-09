@@ -2,8 +2,8 @@ import axios from "axios";
 import { useAuthStore } from "../context/authStore.js";
 
 const api = axios.create({
-  baseURL: "/api",
-  withCredentials: true // send refresh-token cookie
+  baseURL: "https://practicee-6c2w.vercel.app/api",
+  withCredentials: true
 });
 
 api.interceptors.request.use((config) => {
@@ -17,17 +17,26 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
+
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
+
       try {
-        const { data } = await axios.post("/api/auth/refresh", {}, { withCredentials: true });
+        const { data } = await axios.post(
+          "https://practicee-6c2w.vercel.app/api/auth/refresh",
+          {},
+          { withCredentials: true }
+        );
+
         useAuthStore.getState().setAccessToken(data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
+
         return api(original);
       } catch (refreshErr) {
         useAuthStore.getState().logout();
       }
     }
+
     return Promise.reject(error);
   }
 );
