@@ -78,15 +78,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB and start server
-const PORT = process.env.PORT || 5000;
-
+// Connect to MongoDB
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log("MongoDB connection established");
   })
   .catch((err) => {
     console.error("Failed to connect to MongoDB:", err);
   });
+
+// Export Express app for Vercel
+export default app;
