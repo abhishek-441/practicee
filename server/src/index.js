@@ -15,16 +15,19 @@ import adminRoutes from "./routes/adminRoutes.js";
 import { stripeWebhook } from "./controllers/paymentController.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
+
+// Trust Vercel's proxy
 app.set("trust proxy", 1);
 
+// Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://practicee-alone-a559.vercel.app"
+  "https://practicee-ten.vercel.app"
 ];
 
+// CORS
 app.use(
   cors({
     origin: allowedOrigins,
@@ -32,7 +35,8 @@ app.use(
   })
 );
 
-// Stripe webhook needs the raw body, so it must be registered BEFORE express.json()
+// Stripe webhook needs the raw body,
+// so it must be registered BEFORE express.json()
 app.post(
   "/api/payments/webhook",
   express.raw({ type: "application/json" }),
@@ -42,6 +46,7 @@ app.post(
 app.use(express.json());
 app.use(cookieParser());
 
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
@@ -51,22 +56,37 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
-app.use((req, res) =>
-  res.status(404).json({ message: "Route not found" })
-);
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found"
+  });
+});
 
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
   res.status(500).json({
     message: "Something went wrong",
     error: err.message
   });
 });
 
+// Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB:", err);
+  });
